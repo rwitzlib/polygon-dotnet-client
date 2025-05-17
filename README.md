@@ -71,7 +71,7 @@ public class SomeClass
 | Market Data Endpoints | Supported? |
 | - | - |
 | [Aggregates](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__range__multiplier___timespan___from___to) | ✔️ |
-| [Grouped Daily](https://polygon.io/docs/stocks/get_v2_aggs_grouped_locale_us_market_stocks__date) | ❌ |
+| [Grouped Daily](https://polygon.io/docs/stocks/get_v2_aggs_grouped_locale_us_market_stocks__date) | ✔️ |
 | [Daily Open/Close](https://polygon.io/docs/stocks/get_v1_open-close__stocksticker___date) | ❌ |
 | [Previous Close](https://polygon.io/docs/stocks/get_v2_aggs_ticker__stocksticker__prev) | ❌|
 | [Trades](https://polygon.io/docs/stocks/get_v3_trades__stockticker) | ❌ |
