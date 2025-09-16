@@ -289,7 +289,7 @@ public class PolygonClient : IPolygonClient
         try
         {
             var url = "/v2/aggs/grouped/locale/us/market/stocks";
-            
+
             if (date != null)
             {
                 url += $"/{date:yyyy-MM-dd}";
@@ -313,6 +313,42 @@ public class PolygonClient : IPolygonClient
         {
             _logger.LogError($"Error getting daily market summary from Polygon API: {ex.Message}");
             return GenerateDailyMarketSummaryErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonSnapshotGainersLosersResponse> GetSnapshotGainersLosers(PolygonSnapshotGainersLosersRequest request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Direction))
+        {
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        if (request.Direction != "gainers" && request.Direction != "losers")
+        {
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        try
+        {
+            var url = $"/v2/snapshot/locale/us/markets/stocks/{request.Direction}?include_otc={request.IncludeOtc}&limit={request.Limit}";
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateSnapshotGainersLosersErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var snapshotGainersLosersResponse = JsonSerializer.Deserialize<PolygonSnapshotGainersLosersResponse>(json, _options);
+
+            return snapshotGainersLosersResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting snapshot gainers/losers from Polygon API: {ex.Message}");
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.InternalServerError);
         }
     }
 
@@ -365,6 +401,16 @@ public class PolygonClient : IPolygonClient
             QueryCount = 0,
             ResultsCount = 0,
             Count = 0
+        };
+    }
+
+    private static PolygonSnapshotGainersLosersResponse GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonSnapshotGainersLosersResponse
+        {
+            Status = status.ToString(),
+            Count = 0,
+            Tickers = []
         };
     }
     #endregion
