@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Moq.Protected;
+using Polygon.Client.DependencyInjection;
 using Polygon.Client.Responses;
 using System.Net;
 using System.Net.Http.Headers;
