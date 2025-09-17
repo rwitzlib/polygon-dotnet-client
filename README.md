@@ -67,47 +67,6 @@ public class SomeClass
 }
 ```
 
-#### Get Snapshot Gainers/Losers
-
-```c#
-public class SomeClass
-{
-    private readonly IPolygonClient _polygonClient;
-
-    public SomeClass(IPolygonClient polygonClient)
-    {
-        _polygonClient = polygonClient;
-    }
-
-    public async Task<PolygonSnapshotGainersLosersResponse> GetTopGainers()
-    {
-        var request = new PolygonSnapshotGainersLosersRequest
-        {
-            Direction = "gainers",
-            IncludeOtc = false,
-            Limit = 20
-        };
-
-        var response = await _polygonClient.GetSnapshotGainersLosers(request);
-
-        return response;
-    }
-
-    public async Task<PolygonSnapshotGainersLosersResponse> GetTopLosers()
-    {
-        var request = new PolygonSnapshotGainersLosersRequest
-        {
-            Direction = "losers",
-            IncludeOtc = true,  // Include OTC securities
-            Limit = 50          // Get top 50 losers
-        };
-
-        var response = await _polygonClient.GetSnapshotGainersLosers(request);
-
-        return response;
-    }
-}
-```
 ## Supported Endpoints
 
 | Market Data Endpoints | Supported? |
@@ -133,10 +92,10 @@ public class SomeClass
 | - | - |
 | [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) | ✔️ |
 | [Ticker Details V3](https://polygon.io/docs/stocks/get_v3_reference_tickers__ticker) | ✔️ |
-| [Ticker Events](https://polygon.io/docs/stocks/get_vx_reference_tickers__id__events) | ❌ |
-| [Ticker News](https://polygon.io/docs/stocks/get_v2_reference_news) | ❌ |
-| [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) | ❌ |
-| [Market Holidays](https://polygon.io/docs/stocks/get_v1_marketstatus_upcoming) | ❌ |
+| [Ticker Events](https://polygon.io/docs/stocks/get_vx_reference_tickers__id__events) | ✔️ |
+| [Ticker News](https://polygon.io/docs/stocks/get_v2_reference_news) | ✔️ |
+| [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) | ✔️ |
+| [Market Holidays](https://polygon.io/docs/stocks/get_v1_marketstatus_upcoming) | ✔️ |
 | [Market Status](https://polygon.io/docs/stocks/get_v1_marketstatus_now) | ❌ |
 | [Stock Splits V3](https://polygon.io/docs/stocks/get_v3_reference_splits) | ❌ |
 | [Dividends V3](https://polygon.io/docs/stocks/get_v3_reference_dividends) | ❌ |

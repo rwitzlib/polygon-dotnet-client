@@ -13,5 +13,9 @@ namespace Polygon.Client.Interfaces
         public Task<PolygonSnapshotResponse> GetAllTickersSnapshot(string tickers, bool includeOtc = false);
         public Task<PolygonDailyMarketSummaryResponse> GetDailyMarketSummary(DateTime? date = null, bool includeOtc = false, bool adjusted = true);
         public Task<PolygonSnapshotGainersLosersResponse> GetSnapshotGainersLosers(PolygonSnapshotGainersLosersRequest request);
+        public Task<PolygonTickerEventsResponse> GetTickerEvents(PolygonTickerEventsRequest request);
+        public Task<PolygonTickerNewsResponse> GetTickerNews(PolygonTickerNewsRequest request);
+        public Task<PolygonTickerTypesResponse> GetTickerTypes();
+        public Task<PolygonMarketHolidaysResponse> GetMarketHolidays();
     }
 }
