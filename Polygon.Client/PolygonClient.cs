@@ -170,7 +170,9 @@ public class PolygonClient : IPolygonClient
 
             if (polygonAggregateResponse.NextUrl is not null)
             {
-                polygonAggregateResponse.Results.ToList().AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
+                var allResults = polygonAggregateResponse.Results.ToList();
+                allResults.AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
+                polygonAggregateResponse.Results = allResults;
             }
 
             return polygonAggregateResponse;
