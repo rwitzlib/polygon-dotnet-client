@@ -168,12 +168,55 @@ public class PolygonClient : IPolygonClient
 
             var polygonAggregateResponse = JsonSerializer.Deserialize<PolygonAggregateResponse>(json, _options);
 
+            if (polygonAggregateResponse.NextUrl is not null)
+            {
+                var allResults = polygonAggregateResponse.Results.ToList();
+                allResults.AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
+                polygonAggregateResponse.Results = allResults;
+            }
+
             return polygonAggregateResponse;
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error getting aggregate data from Polygon API: {ex.Message}");
             return GenerateAggregatesErrorResponse(request.Ticker, HttpStatusCode.InternalServerError);
+        }
+
+        async Task<List<Bar>> GetNextAggregates(string url)
+        {
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                return [];
+            }
+
+            List<Bar> results = [];
+            try
+            {
+                var response = await _client.GetAsync(new Uri(url));
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    return [];
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var polygonAggregateResponse = JsonSerializer.Deserialize<PolygonAggregateResponse>(json, _options);
+
+                results.AddRange(polygonAggregateResponse.Results);
+
+                if (polygonAggregateResponse.NextUrl is not null)
+                {
+                    results.AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting previous day aggregates from Polygon API: {ex.Message}");
+                return [];
+            }
         }
     }
 

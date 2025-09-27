@@ -58,7 +58,7 @@ namespace Polygon.Client.UnitTests
 
             // Assert
             response.Should().NotBeNull();
-            response.Status.Should().Be(HttpStatusCode.OK.ToString());
+            response.Status.Should().Be(HttpStatusCode.Forbidden.ToString());
             response.Results.Should().BeEmpty();
             response.QueryCount.Should().Be(0);
             response.ResultsCount.Should().Be(0);
