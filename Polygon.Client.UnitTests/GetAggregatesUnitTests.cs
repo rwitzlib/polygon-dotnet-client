@@ -8,6 +8,7 @@ using Polygon.Client.Models;
 using Polygon.Client.Requests;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Text.Json;
 
 namespace Polygon.Client.UnitTests
 {
@@ -303,6 +304,185 @@ namespace Polygon.Client.UnitTests
 
             firstConvertedCandleTimestamp.DateTime.Should().Be(from.DateTime);
             lastConvertedCandleTimestamp.DateTime.Should().Be(to.DateTime);
+        }
+
+        [Fact]
+        public async Task GetAggregates_With_NextUrl_Returns_Combined_Results()
+        {
+            // Arrange
+            var request = new PolygonAggregateRequest
+            {
+                Ticker = "SPY",
+                Multiplier = 1,
+                Timespan = "minute",
+                From = "2024-03-25",
+                To = "2024-03-26"
+            };
+
+            var initialResponse = new
+            {
+                status = "OK",
+                request_id = "test",
+                results = new[]
+                {
+                    new { o = 100f, h = 101f, l = 99f, c = 100.5f, v = 1000f, t = 1648166400000L, n = 100 }
+                },
+                next_url = "https://api.polygon.io/v2/aggs/ticker/SPY/range/1/minute/2024-03-25/2024-03-26?next=123"
+            };
+
+            var nextResponse = new
+            {
+                status = "OK",
+                request_id = "test2",
+                results = new[]
+                {
+                    new { o = 102f, h = 103f, l = 101f, c = 102.5f, v = 2000f, t = 1648167400000L, n = 200 }
+                }
+            };
+
+            var handler = new Mock<HttpMessageHandler>();
+            
+            // Setup initial request response
+            handler.Protected()
+                .SetupSequence<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(initialResponse))
+                })
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(nextResponse))
+                });
+
+            var httpClient = new HttpClient(handler.Object)
+            {
+                BaseAddress = new Uri("https://api.polygon.io")
+            };
+            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse($"Bearer {Environment.GetEnvironmentVariable("POLYGON_TOKEN")}");
+
+            var client = new PolygonClient(httpClient, new NullLogger<PolygonClient>());
+
+            // Act
+            var response = await client.GetAggregates(request);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Status.Should().Be(HttpStatusCode.OK.ToString());
+            response.Results.Should().HaveCount(2);
+            
+            var results = response.Results.ToList();
+            results[0].Open.Should().Be(100f);
+            results[1].Open.Should().Be(102f);
+        }
+
+        [Fact]
+        public async Task GetAggregates_Without_NextUrl_Returns_Only_Initial_Results()
+        {
+            // Arrange
+            var request = new PolygonAggregateRequest
+            {
+                Ticker = "SPY",
+                Multiplier = 1,
+                Timespan = "minute",
+                From = "2024-03-25",
+                To = "2024-03-26"
+            };
+
+            var response = new
+            {
+                status = "OK",
+                request_id = "test",
+                results = new[]
+                {
+                    new { o = 100f, h = 101f, l = 99f, c = 100.5f, v = 1000f, t = 1648166400000L, n = 100 }
+                }
+            };
+
+            var handler = new Mock<HttpMessageHandler>();
+            handler.Protected()
+                .Setup<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(response))
+                });
+
+            var httpClient = new HttpClient(handler.Object)
+            {
+                BaseAddress = new Uri("https://api.polygon.io")
+            };
+            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse($"Bearer {Environment.GetEnvironmentVariable("POLYGON_TOKEN")}");
+
+            var client = new PolygonClient(httpClient, new NullLogger<PolygonClient>());
+
+            // Act
+            var result = await client.GetAggregates(request);
+
+            // Assert
+            result.Should().NotBeNull();
+            result.Status.Should().Be(HttpStatusCode.OK.ToString());
+            result.Results.Should().HaveCount(1);
+            result.Results.First().Open.Should().Be(100f);
+        }
+
+        [Fact]
+        public async Task GetAggregates_With_NextUrl_Error_Returns_Initial_Results()
+        {
+            // Arrange
+            var request = new PolygonAggregateRequest
+            {
+                Ticker = "SPY",
+                Multiplier = 1,
+                Timespan = "minute",
+                From = "2024-03-25",
+                To = "2024-03-26"
+            };
+
+            var initialResponse = new
+            {
+                status = "OK",
+                request_id = "test",
+                results = new[]
+                {
+                    new { o = 100f, h = 101f, l = 99f, c = 100.5f, v = 1000f, t = 1648166400000L, n = 100 }
+                },
+                next_url = "https://api.polygon.io/v2/aggs/ticker/SPY/range/1/minute/2024-03-25/2024-03-26?next=123"
+            };
+
+            var handler = new Mock<HttpMessageHandler>();
+            
+            // Setup initial request success and next_url request failure
+            handler.Protected()
+                .SetupSequence<Task<HttpResponseMessage>>("SendAsync", ItExpr.IsAny<HttpRequestMessage>(), ItExpr.IsAny<CancellationToken>())
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.OK,
+                    Content = new StringContent(JsonSerializer.Serialize(initialResponse))
+                })
+                .ReturnsAsync(new HttpResponseMessage
+                {
+                    StatusCode = HttpStatusCode.BadRequest,
+                    Content = new StringContent("Error")
+                });
+
+            var httpClient = new HttpClient(handler.Object)
+            {
+                BaseAddress = new Uri("https://api.polygon.io")
+            };
+            httpClient.DefaultRequestHeaders.Authorization = AuthenticationHeaderValue.Parse($"Bearer {Environment.GetEnvironmentVariable("POLYGON_TOKEN")}");
+
+            var client = new PolygonClient(httpClient, new NullLogger<PolygonClient>());
+
+            // Act
+            var response = await client.GetAggregates(request);
+
+            // Assert
+            response.Should().NotBeNull();
+            response.Status.Should().Be(HttpStatusCode.OK.ToString());
+            response.Results.Should().HaveCount(1);
+            response.Results.First().Open.Should().Be(100f);
         }
     }
 }
