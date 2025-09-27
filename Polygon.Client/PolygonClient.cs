@@ -182,41 +182,41 @@ public class PolygonClient : IPolygonClient
             _logger.LogError($"Error getting aggregate data from Polygon API: {ex.Message}");
             return GenerateAggregatesErrorResponse(request.Ticker, HttpStatusCode.InternalServerError);
         }
-    }
 
-    public async Task<List<Bar>> GetNextAggregates(string url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
+        async Task<List<Bar>> GetNextAggregates(string url)
         {
-            return [];
-        }
-
-        List<Bar> results = [];
-        try
-        {
-            var response = await _client.GetAsync(new Uri(url));
-
-            if (!response.IsSuccessStatusCode)
+            if (string.IsNullOrWhiteSpace(url))
             {
                 return [];
             }
 
-            var json = await response.Content.ReadAsStringAsync();
-            var polygonAggregateResponse = JsonSerializer.Deserialize<PolygonAggregateResponse>(json, _options);
-
-            results.AddRange(polygonAggregateResponse.Results);
-
-            if (polygonAggregateResponse.NextUrl is not null)
+            List<Bar> results = [];
+            try
             {
-                results.AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
-            }
+                var response = await _client.GetAsync(new Uri(url));
 
-            return results;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error getting previous day aggregates from Polygon API: {ex.Message}");
-            return [];
+                if (!response.IsSuccessStatusCode)
+                {
+                    return [];
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                var polygonAggregateResponse = JsonSerializer.Deserialize<PolygonAggregateResponse>(json, _options);
+
+                results.AddRange(polygonAggregateResponse.Results);
+
+                if (polygonAggregateResponse.NextUrl is not null)
+                {
+                    results.AddRange(await GetNextAggregates(polygonAggregateResponse.NextUrl));
+                }
+
+                return results;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error getting previous day aggregates from Polygon API: {ex.Message}");
+                return [];
+            }
         }
     }
 
