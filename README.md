@@ -66,6 +66,7 @@ public class SomeClass
     }
 }
 ```
+
 ## Supported Endpoints
 
 | Market Data Endpoints | Supported? |
@@ -79,7 +80,7 @@ public class SomeClass
 | [Quotes (NBBO)](https://polygon.io/docs/stocks/get_v3_quotes__stockticker) | ❌ |
 | [Last Quote](https://polygon.io/docs/stocks/get_v2_last_nbbo__stocksticker) | ❌ |
 | [Snapshot - All Tickers](https://polygon.io/docs/stocks/get_v2_snapshot_locale_us_markets_stocks_tickers) | ✔️ |
-| [Snapshot - Gainers/Losers](https://polygon.io/docs/stocks/get_v2_snapshot_locale_us_markets_stocks__direction) | ❌ |
+| [Snapshot - Gainers/Losers](https://polygon.io/docs/stocks/get_v2_snapshot_locale_us_markets_stocks__direction) | ✔️ |
 | [Snapshot - Ticker](https://polygon.io/docs/stocks/get_v2_snapshot_locale_us_markets_stocks_tickers__stocksticker) | ❌ |
 | [Snapshot - Universal](https://polygon.io/docs/stocks/get_v3_snapshot) | ❌ |
 | [Technical Indicators - SMA](https://polygon.io/docs/stocks/get_v1_indicators_sma__stockticker) | ❌ |
@@ -91,10 +92,10 @@ public class SomeClass
 | - | - |
 | [Tickers](https://polygon.io/docs/stocks/get_v3_reference_tickers) | ✔️ |
 | [Ticker Details V3](https://polygon.io/docs/stocks/get_v3_reference_tickers__ticker) | ✔️ |
-| [Ticker Events](https://polygon.io/docs/stocks/get_vx_reference_tickers__id__events) | ❌ |
-| [Ticker News](https://polygon.io/docs/stocks/get_v2_reference_news) | ❌ |
-| [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) | ❌ |
-| [Market Holidays](https://polygon.io/docs/stocks/get_v1_marketstatus_upcoming) | ❌ |
+| [Ticker Events](https://polygon.io/docs/stocks/get_vx_reference_tickers__id__events) | ✔️ |
+| [Ticker News](https://polygon.io/docs/stocks/get_v2_reference_news) | ✔️ |
+| [Ticker Types](https://polygon.io/docs/stocks/get_v3_reference_tickers_types) | ✔️ |
+| [Market Holidays](https://polygon.io/docs/stocks/get_v1_marketstatus_upcoming) | ✔️ |
 | [Market Status](https://polygon.io/docs/stocks/get_v1_marketstatus_now) | ❌ |
 | [Stock Splits V3](https://polygon.io/docs/stocks/get_v3_reference_splits) | ❌ |
 | [Dividends V3](https://polygon.io/docs/stocks/get_v3_reference_dividends) | ❌ |

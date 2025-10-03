@@ -332,7 +332,7 @@ public class PolygonClient : IPolygonClient
         try
         {
             var url = "/v2/aggs/grouped/locale/us/market/stocks";
-            
+
             if (date != null)
             {
                 url += $"/{date:yyyy-MM-dd}";
@@ -356,6 +356,204 @@ public class PolygonClient : IPolygonClient
         {
             _logger.LogError($"Error getting daily market summary from Polygon API: {ex.Message}");
             return GenerateDailyMarketSummaryErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonSnapshotGainersLosersResponse> GetSnapshotGainersLosers(PolygonSnapshotGainersLosersRequest request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Direction))
+        {
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        if (request.Direction != "gainers" && request.Direction != "losers")
+        {
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        try
+        {
+            var url = $"/v2/snapshot/locale/us/markets/stocks/{request.Direction}?include_otc={request.IncludeOtc}&limit={request.Limit}";
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateSnapshotGainersLosersErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var snapshotGainersLosersResponse = JsonSerializer.Deserialize<PolygonSnapshotGainersLosersResponse>(json, _options);
+
+            return snapshotGainersLosersResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting snapshot gainers/losers from Polygon API: {ex.Message}");
+            return GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonTickerEventsResponse> GetTickerEvents(PolygonTickerEventsRequest request)
+    {
+        if (request is null || string.IsNullOrWhiteSpace(request.Ticker))
+        {
+            return GenerateTickerEventsErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        try
+        {
+            var url = $"/vx/reference/tickers/{request.Ticker}/events";
+
+            var queryParams = new List<string>();
+            if (!string.IsNullOrWhiteSpace(request.Types))
+            {
+                queryParams.Add($"types={request.Types}");
+            }
+            if (request.DateFrom.HasValue)
+            {
+                queryParams.Add($"date_from={request.DateFrom.Value:yyyy-MM-dd}");
+            }
+            if (request.DateTo.HasValue)
+            {
+                queryParams.Add($"date_to={request.DateTo.Value:yyyy-MM-dd}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.Sort))
+            {
+                queryParams.Add($"sort={request.Sort}");
+            }
+            queryParams.Add($"limit={request.Limit}");
+
+            if (queryParams.Any())
+            {
+                url += "?" + string.Join("&", queryParams);
+            }
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateTickerEventsErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var tickerEventsResponse = JsonSerializer.Deserialize<PolygonTickerEventsResponse>(json, _options);
+
+            return tickerEventsResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting ticker events from Polygon API: {ex.Message}");
+            return GenerateTickerEventsErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonTickerNewsResponse> GetTickerNews(PolygonTickerNewsRequest request)
+    {
+        if (request is null)
+        {
+            return GenerateTickerNewsErrorResponse(HttpStatusCode.BadRequest);
+        }
+
+        try
+        {
+            var url = "/v2/reference/news";
+
+            var queryParams = new List<string>();
+            if (!string.IsNullOrWhiteSpace(request.Ticker))
+            {
+                queryParams.Add($"ticker={request.Ticker}");
+            }
+            if (request.PublishedUtc.HasValue)
+            {
+                queryParams.Add($"published_utc.gte={request.PublishedUtc.Value:yyyy-MM-ddTHH:mm:ssZ}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.Sort))
+            {
+                queryParams.Add($"sort={request.Sort}");
+            }
+            if (!string.IsNullOrWhiteSpace(request.Order))
+            {
+                queryParams.Add($"order={request.Order}");
+            }
+            queryParams.Add($"limit={request.Limit}");
+
+            if (queryParams.Any())
+            {
+                url += "?" + string.Join("&", queryParams);
+            }
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateTickerNewsErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var tickerNewsResponse = JsonSerializer.Deserialize<PolygonTickerNewsResponse>(json, _options);
+
+            return tickerNewsResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting ticker news from Polygon API: {ex.Message}");
+            return GenerateTickerNewsErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonTickerTypesResponse> GetTickerTypes()
+    {
+        try
+        {
+            var url = "/v3/reference/tickers/types";
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateTickerTypesErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var tickerTypesResponse = JsonSerializer.Deserialize<PolygonTickerTypesResponse>(json, _options);
+
+            return tickerTypesResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting ticker types from Polygon API: {ex.Message}");
+            return GenerateTickerTypesErrorResponse(HttpStatusCode.InternalServerError);
+        }
+    }
+
+    public async Task<PolygonMarketHolidaysResponse> GetMarketHolidays()
+    {
+        try
+        {
+            var url = "/v1/marketstatus/upcoming";
+
+            var response = await _client.GetAsync(url);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                return GenerateMarketHolidaysErrorResponse(response.StatusCode);
+            }
+
+            var json = await response.Content.ReadAsStringAsync();
+
+            var marketHolidaysResponse = JsonSerializer.Deserialize<PolygonMarketHolidaysResponse>(json, _options);
+
+            return marketHolidaysResponse;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error getting market holidays from Polygon API: {ex.Message}");
+            return GenerateMarketHolidaysErrorResponse(HttpStatusCode.InternalServerError);
         }
     }
 
@@ -408,6 +606,55 @@ public class PolygonClient : IPolygonClient
             QueryCount = 0,
             ResultsCount = 0,
             Count = 0
+        };
+    }
+
+    private static PolygonSnapshotGainersLosersResponse GenerateSnapshotGainersLosersErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonSnapshotGainersLosersResponse
+        {
+            Status = status.ToString(),
+            Count = 0,
+            Tickers = []
+        };
+    }
+
+    private static PolygonTickerEventsResponse GenerateTickerEventsErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonTickerEventsResponse
+        {
+            Status = status.ToString(),
+            Count = 0,
+            Results = []
+        };
+    }
+
+    private static PolygonTickerNewsResponse GenerateTickerNewsErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonTickerNewsResponse
+        {
+            Status = status.ToString(),
+            Count = 0,
+            Results = []
+        };
+    }
+
+    private static PolygonTickerTypesResponse GenerateTickerTypesErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonTickerTypesResponse
+        {
+            Status = status.ToString(),
+            Count = 0,
+            Results = []
+        };
+    }
+
+    private static PolygonMarketHolidaysResponse GenerateMarketHolidaysErrorResponse(HttpStatusCode status)
+    {
+        return new PolygonMarketHolidaysResponse
+        {
+            Status = status.ToString(),
+            Results = []
         };
     }
     #endregion
