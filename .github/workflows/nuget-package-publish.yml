@@ -8,7 +8,7 @@ on:
       - master
 
 env:
-  POLYGON_TOKEN: ${{ secrets.POLYGON_TOKEN }}
+  MASSIVE_TOKEN: ${{ secrets.MASSIVE_TOKEN }}
 
 jobs:
   build:
@@ -19,9 +19,9 @@ jobs:
         with:
           dotnet-version: '8.0'
       - run: |
-          dotnet clean
-          dotnet restore
-          dotnet build
+          dotnet clean Massive.Client.sln
+          dotnet restore Massive.Client.sln
+          dotnet build Massive.Client.sln
 
   test:
     runs-on: ubuntu-latest
@@ -32,7 +32,7 @@ jobs:
         with:
           dotnet-version: '8.0'
       - run: |
-          dotnet test
+          dotnet test Massive.Client.sln
 
   publish:
     runs-on: ubuntu-latest
@@ -45,11 +45,11 @@ jobs:
           dotnet-version: '8.0'
 
       - name: Package
-        run: dotnet pack
+        run: dotnet pack Massive.Client.sln
 
       - name: Publish Client
         run: |
-          dotnet nuget push ./Polygon.Client/bin/Release/*.nupkg  \
+          dotnet nuget push ./Massive.Client/bin/Release/*.nupkg  \
             -k $NUGET_AUTH_TOKEN \
             -s https://api.nuget.org/v3/index.json \
             --skip-duplicate
